@@ -396,7 +396,7 @@ let submissionsCache = [];
 
 async function getSubs() {
   try {
-    const res = await fetch('/.netlify/functions/submissions');
+    const res = await fetch('/api/submissions');
     if (res.ok) {
       const data = await res.json();
       submissionsCache = data;
@@ -424,7 +424,7 @@ async function saveSubs(a) {
   submissionsCache = a;
   // Try to save to backend, fallback to localStorage
   try {
-    const res = await fetch('/.netlify/functions/submissions', {
+    const res = await fetch('/api/submissions', {
       method: 'POST',
       body: JSON.stringify(a[0])
     });
@@ -436,23 +436,38 @@ async function saveSubs(a) {
 
 function getCoinImg() { return localStorage.getItem('gms_coin_img') || null; }
 function saveCoinImg(d) { localStorage.setItem('gms_coin_img', d); }
-function getCreatedCoins() { 
-  try { 
+function getCreatedCoinsLocal() {
+  try {
     const data = JSON.parse(localStorage.getItem('gms_created_coins') || '[]');
     console.log('📦 Loaded coins from localStorage:', data.length, 'coins');
     return data;
   } catch (e) {
     console.error('❌ Error loading coins:', e);
-    return []; 
+    return [];
   }
 }
-function saveCreatedCoins(a) { 
+function saveCreatedCoinsLocal(a) {
   try {
     localStorage.setItem('gms_created_coins', JSON.stringify(a));
     console.log('✅ Saved', a.length, 'coins to localStorage');
   } catch (e) {
     console.error('❌ Error saving coins:', e);
   }
+}
+
+async function getCreatedCoins() {
+  try {
+    const res = await fetch('/api/created-coins');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) saveCreatedCoinsLocal(data);
+      return Array.isArray(data) ? data : [];
+    }
+    console.warn('⚠️ GET created-coins returned', res.status);
+  } catch (e) {
+    console.warn('⚠️ Created coins API fetch failed:', e.message);
+  }
+  return getCreatedCoinsLocal();
 }
 
 /* ── DIAGNOSTIC FUNCTION ── */
@@ -481,7 +496,7 @@ async function diagnoseStorage() {
   }
   
   // Check coins in memory
-  const coins = getCreatedCoins();
+  const coins = await getCreatedCoins();
   console.log('\n💰 In-memory coins:', coins.length);
   
   // Check submissions in memory
@@ -555,7 +570,7 @@ async function handleSubmit() {
     let photoPath = photoDataURL;
     try {
       const base64 = photoDataURL.split(',')[1];
-      const uploadRes = await fetch('/.netlify/functions/upload', {
+      const uploadRes = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -587,7 +602,7 @@ async function handleSubmit() {
     
     // Try to save to backend
     try {
-      const postRes = await fetch('/.netlify/functions/submissions', {
+      const postRes = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -761,15 +776,35 @@ function handleCreatedCoinUpload(input) {
   reader.readAsDataURL(file);
 }
 
-function saveCreatedCoin() {
+ async function saveCreatedCoin() {
   const name = document.getElementById('coin-name-input').value.trim();
   if (!name) { alert('Please enter a coin name.'); return; }
   if (!tempCoinUploadData) { alert('No coin image selected.'); return; }
   
-  const coins = getCreatedCoins();
+  const coins = await getCreatedCoins();
   const newCoin = { id: Date.now(), name, image: tempCoinUploadData, date: new Date().toISOString() };
   coins.unshift(newCoin);
-  saveCreatedCoins(coins);
+
+  // Save local and push one new coin to API
+  saveCreatedCoinsLocal(coins);
+  try {
+    const resp = await fetch('/.netlify/functions/created-coins', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCoin)
+    });
+    if (!resp.ok) {
+      console.warn('⚠️ Error saving created coin to server:', resp.status);
+    } else {
+      const saved = await resp.json();
+      if (saved && saved.id) {
+        const idx = coins.findIndex(c => c.id === newCoin.id);
+        if (idx !== -1) coins[idx].id = saved.id;
+      }
+    }
+  } catch (e) {
+    console.warn('⚠️ Created coin server save failed:', e.message);
+  }
   
   // Reset
   tempCoinUploadData = null;
@@ -777,8 +812,8 @@ function saveCreatedCoin() {
   document.getElementById('coin-name-input-wrap').style.display = 'none';
   document.getElementById('created-coin-upload-inner').style.display = 'block';
   
-  loadCreatedCoinsSection();
-  loadCoinGallery();
+  await loadCreatedCoinsSection();
+  await loadCoinGallery();
 }
 
 function cancelCoinUpload() {
@@ -788,8 +823,8 @@ function cancelCoinUpload() {
   document.getElementById('created-coin-upload-inner').style.display = 'block';
 }
 
-function loadCreatedCoinsSection() {
-  const coins = getCreatedCoins();
+async function loadCreatedCoinsSection() {
+  const coins = await getCreatedCoins();
   const list = document.getElementById('created-coins-list');
   const noMsg = document.getElementById('no-created-coins-msg');
   
@@ -821,18 +856,24 @@ function downloadCreatedCoin(image, name) {
   a.click();
 }
 
-function deleteCreatedCoin(coinId) {
+ async function deleteCreatedCoin(coinId) {
   if (!confirm('Delete this coin?')) return;
-  let coins = getCreatedCoins();
+  let coins = await getCreatedCoins();
   coins = coins.filter(c => c.id !== coinId);
-  saveCreatedCoins(coins);
-  loadCreatedCoinsSection();
-  loadCoinGallery();
+  try {
+    const res = await fetch(`/.netlify/functions/created-coins/${coinId}`, { method: 'DELETE' });
+    if (!res.ok) console.warn('⚠️ Could not delete coin from server', res.status);
+  } catch (e) {
+    console.warn('⚠️ Created coin delete API failed:', e.message);
+  }
+  saveCreatedCoinsLocal(coins);
+  await loadCreatedCoinsSection();
+  await loadCoinGallery();
 }
 
 /* ── Coin Gallery on Main Page ── */
-function loadCoinGallery() {
-  const coins = getCreatedCoins();
+async function loadCoinGallery() {
+  const coins = await getCreatedCoins();
   const grid = document.getElementById('coin-gallery-grid');
   const noMsg = document.getElementById('no-coins-msg');
   
