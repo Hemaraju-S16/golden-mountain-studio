@@ -436,6 +436,9 @@ async function saveSubs(a) {
 
 function getCoinImg() { return localStorage.getItem('gms_coin_img') || null; }
 function saveCoinImg(d) { localStorage.setItem('gms_coin_img', d); }
+function slugify(text) {
+  return String(text).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
 function getCreatedCoinsLocal() {
   try {
     const data = JSON.parse(localStorage.getItem('gms_created_coins') || '[]');
@@ -463,7 +466,8 @@ async function getCreatedCoins() {
       if (Array.isArray(data)) saveCreatedCoinsLocal(data);
       return Array.isArray(data) ? data : [];
     }
-    console.warn('⚠️ GET created-coins returned', res.status);
+    const body = await res.text();
+    console.warn('⚠️ GET created-coins returned', res.status, body);
   } catch (e) {
     console.warn('⚠️ Created coins API fetch failed:', e.message);
   }
@@ -484,7 +488,7 @@ async function diagnoseStorage() {
   // Check API
   console.log('\n🔌 Checking API...');
   try {
-    const res = await fetch('/.netlify/functions/submissions');
+    const res = await fetch('/api/submissions');
     if (res.ok) {
       const data = await res.json();
       console.log('✅ API submissions:', data.length, 'items');
@@ -782,13 +786,38 @@ function handleCreatedCoinUpload(input) {
   if (!tempCoinUploadData) { alert('No coin image selected.'); return; }
   
   const coins = await getCreatedCoins();
-  const newCoin = { id: Date.now(), name, image: tempCoinUploadData, date: new Date().toISOString() };
+  const coinSlug = slugify(name) || 'custom-coin';
+  const filePath = `created-coins/${Date.now()}-${coinSlug}.png`;
+  let imageUrl = tempCoinUploadData;
+
+  // Upload created coin image to Supabase storage bucket (narachi-photos)
+  try {
+    const uploadResp = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: tempCoinUploadData, bucket: 'narachi-photos', path: filePath })
+    });
+    if (uploadResp.ok) {
+      const data = await uploadResp.json();
+      if (data.url) {
+        imageUrl = data.url;
+      } else {
+        console.warn('⚠️ Upload response missing url, keep base64 fallback');
+      }
+    } else {
+      console.warn('⚠️ Upload failed with status', uploadResp.status);
+    }
+  } catch (e) {
+    console.warn('⚠️ Upload to bucket failed:', e.message);
+  }
+
+  const newCoin = { id: Date.now(), name, image: imageUrl, date: new Date().toISOString() };
   coins.unshift(newCoin);
 
   // Save local and push one new coin to API
   saveCreatedCoinsLocal(coins);
   try {
-    const resp = await fetch('/.netlify/functions/created-coins', {
+    const resp = await fetch('/api/created-coins', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newCoin)
@@ -861,7 +890,7 @@ function downloadCreatedCoin(image, name) {
   let coins = await getCreatedCoins();
   coins = coins.filter(c => c.id !== coinId);
   try {
-    const res = await fetch(`/.netlify/functions/created-coins/${coinId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/created-coins/${coinId}`, { method: 'DELETE' });
     if (!res.ok) console.warn('⚠️ Could not delete coin from server', res.status);
   } catch (e) {
     console.warn('⚠️ Created coin delete API failed:', e.message);

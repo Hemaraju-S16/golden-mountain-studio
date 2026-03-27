@@ -12,9 +12,13 @@ app.use(express.json({ limit: '12mb' }));
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_KEY) console.error('Supabase env vars missing');
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('Supabase env vars missing: SUPABASE_URL or SUPABASE_KEY is not set');
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// If env is invalid, this will throw and we will stop startup.
+// A better approach is to validate early before createClient, but this is a minimal reproducible path.
 console.log('Supabase client initialized (server) using', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SERVICE_ROLE_KEY' : 'ANON_KEY');
 
 // Serve static files (the SPA)
