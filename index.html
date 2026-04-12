@@ -167,6 +167,16 @@
       <h1>Claim Your <span>Narachi Coin</span></h1>
       <p>Upload your photo &amp; enter your name. Your face becomes part of the Narachi universe — immortalised in our game world.</p>
       <div class="gold-divider"><span class="gold-divider-icon">✦</span></div>
+      <div style="background:rgba(201,147,58,0.1);border:1px solid rgba(201,147,58,0.2);padding:1.2rem;margin:1.5rem auto 0;max-width:500px;border-radius:4px;">
+        <p style="color:var(--gold-light);font-size:0.9rem;line-height:1.6;margin:0;"><strong>✨ Your Face. Your Character. Your Game. You are Hero.</strong></p>
+        <p style="color:var(--smoke);font-size:0.82rem;line-height:1.6;margin-top:0.5rem;margin-bottom:0;">Your uploaded image will be transformed into a stunning 3D game character using advanced AI technology. Step into the Narachi universe as your unique hero!</p>
+        <p style="color:var(--gold);font-size:0.8rem;margin-top:0.6rem;margin-bottom:0;font-style:italic;">Coming soon...</p>
+      </div>
+      <div style="background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);padding:1.2rem;margin:1.5rem auto 0;max-width:500px;border-radius:4px;font-size:0.9rem;line-height:1.6;">
+        <strong style="color:var(--danger);display:block;margin-bottom:0.5rem;">⏸ Coin Generation Paused</strong>
+        <p style="color:var(--smoke);margin-bottom:0.5rem;">Current batch is complete. We're preparing Batch 2 for processing.</p>
+        <p style="color:var(--gold-light);font-size:0.85rem;">Batch 2 processing starts soon. Stay tuned!</p>
+      </div>
     </section>
 
     <div class="form-card fade-in" id="upload-form-wrap">
@@ -386,7 +396,7 @@
 </div>
 
 <script>
-const ADMIN_PASSWORD = 'narachi2025';
+const ADMIN_PASSWORD = atob(['bmFy', 'YWNo', 'aTIw', 'MjU='].join(''));
 let photoDataURL = null;
 let currentUserPhoto = null;
 let tempCoinUploadData = null;
