@@ -550,7 +550,7 @@ window._createUser = createUserWithEmailAndPassword;
 window._signInEmail = signInWithEmailAndPassword;
 
 // Auth state listener
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (user) {
     const emailDisplay = document.getElementById('user-email-display');
     if (emailDisplay) emailDisplay.textContent = user.email || user.displayName || '';
@@ -558,6 +558,20 @@ onAuthStateChanged(auth, user => {
         document.getElementById('login-page').classList.contains('active')) {
       showPage('main-page');
     }
+
+    // Try to restore any existing job/coin for this user.
+    // If `restoreUserCoin` is not yet defined (scripts ordering), schedule a short retry.
+    try {
+      if (typeof window.restoreUserCoin === 'function') {
+        await window.restoreUserCoin();
+      } else {
+        setTimeout(() => { if (typeof window.restoreUserCoin === 'function') window.restoreUserCoin(); }, 600);
+      }
+    } catch (e) {
+      // Non-fatal: restoration failure should not block UI
+      console.warn('restoreUserCoin failed:', e);
+    }
+
   } else {
     if (!document.getElementById('admin-login-page').classList.contains('active') &&
         !document.getElementById('admin-page').classList.contains('active')) {
@@ -674,6 +688,116 @@ let photoFile = null;
 let currentUserPhoto = null;
 let currentCoinDataURL = null;
 
+// Restore a user's coin/job state from backend persistence
+window.restoreUserCoin = async function restoreUserCoin() {
+  try {
+    if (!window._auth || !window._auth.currentUser) return;
+    const uid = window._auth.currentUser.uid;
+    if (!uid) return;
+
+    const API_BASE = "https://unurgently-gastight-marchelle.ngrok-free.dev";
+
+    const resp = await fetch(`${API_BASE}/job/user/${uid}`, {
+      headers: { "ngrok-skip-browser-warning": "true" }
+    });
+    if (!resp.ok) {
+      console.warn('restoreUserCoin: backend responded', resp.status);
+      return;
+    }
+    const data = await resp.json();
+    if (!data || !data.status) return;
+
+    if (data.status === 'not_found') {
+      // nothing to restore
+      return;
+    }
+
+    // Show loading UI
+    const loadingEl = document.getElementById('loading-status');
+    document.getElementById('coin-loading').style.display = 'block';
+    document.getElementById('coin-result').style.display = 'none';
+    document.getElementById('coin-error').style.display = 'none';
+    if (loadingEl) loadingEl.textContent = 'AI is forging your coin...';
+    showPage('result-page');
+
+    // If job is queued/started — poll until finished
+    if (data.status === 'queued' || data.status === 'started' || data.status === 'processing') {
+      const jobId = data.job_id;
+      if (!jobId) return;
+      const pollUrl = `${API_BASE}/job/status/${jobId}`;
+      const delay = ms => new Promise(r => setTimeout(r, ms));
+      let attempts = 0;
+      const maxAttempts = 120; // allow longer polling when restoring
+      let statusData = null;
+      while (true) {
+        await delay(3000);
+        attempts += 1;
+        if (attempts === 2 && loadingEl) loadingEl.textContent = 'Adding Narachi gold finish...';
+        if (attempts === 4 && loadingEl) loadingEl.textContent = 'Finalising your Khandaan Coin...';
+
+        const statusResponse = await fetch(pollUrl, { headers: { "ngrok-skip-browser-warning": "true" } });
+        if (!statusResponse.ok) {
+          console.warn('restoreUserCoin status check failed', statusResponse.status);
+          if (attempts >= maxAttempts) break;
+          continue;
+        }
+        statusData = await statusResponse.json();
+        if (!statusData || !statusData.status) {
+          if (attempts >= maxAttempts) break;
+          continue;
+        }
+        if (statusData.status === 'finished') break;
+        if (statusData.status === 'failed') {
+          console.warn('restoreUserCoin: job failed');
+          document.getElementById('coin-loading').style.display = 'none';
+          document.getElementById('coin-error').style.display = 'block';
+          document.getElementById('error-msg').textContent = 'Coin generation failed. Please try again.';
+          return;
+        }
+        if (attempts >= maxAttempts) {
+          console.warn('restoreUserCoin: polling timed out');
+          document.getElementById('coin-loading').style.display = 'none';
+          document.getElementById('coin-error').style.display = 'block';
+          document.getElementById('error-msg').textContent = 'Coin generation is taking longer than expected. Check back later.';
+          return;
+        }
+      }
+
+      // If finished, adopt statusData for image fetch
+      if (statusData && statusData.status === 'finished' && Array.isArray(statusData.result_urls) && statusData.result_urls[0]) {
+        const coinURL = statusData.result_urls[0];
+        const imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" } });
+        if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
+        const imageBlob = await imageResponse.blob();
+        const localBlobURL = URL.createObjectURL(imageBlob);
+        currentCoinDataURL = localBlobURL;
+        const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+        document.getElementById('coin-loading').style.display = 'none';
+        document.getElementById('coin-result').style.display = 'block';
+      }
+      return;
+    }
+
+    // If already finished
+    if (data.status === 'finished') {
+      if (!Array.isArray(data.result_urls) || !data.result_urls[0]) return;
+      const coinURL = data.result_urls[0];
+      const imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" } });
+      if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
+      const imageBlob = await imageResponse.blob();
+      const localBlobURL = URL.createObjectURL(imageBlob);
+      currentCoinDataURL = localBlobURL;
+      const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+      document.getElementById('coin-loading').style.display = 'none';
+      document.getElementById('coin-result').style.display = 'block';
+      return;
+    }
+
+  } catch (err) {
+    console.error('restoreUserCoin error:', err);
+  }
+};
+
 // ── Page routing ──
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -758,7 +882,23 @@ async function handleSubmit() {
   try {
     
     const API_BASE = "https://unurgently-gastight-marchelle.ngrok-free.dev";
+    
+
+    if (!window._auth.currentUser) {
+      throw new Error('User not signed in.');
+    }
     const receiveForm = new FormData();
+
+      receiveForm.append(
+    'user_uid',
+    window._auth.currentUser.uid
+  );
+
+    receiveForm.append(
+  'user_email',
+  window._auth.currentUser.email || ''
+);
+
     receiveForm.append('job_type', 'coin_preview');
     receiveForm.append('params', JSON.stringify({ upper_name: name, lower_name: 'NARACHI' }));
     receiveForm.append('files', photoFile, photoFile.name);
