@@ -243,7 +243,7 @@
         </div>
       </div>
       <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">⚡ Generate My Khandaan Coin</button>
-      <p style="text-align:center;font-size:0.76rem;color:var(--smoke);opacity:0.6;margin-top:0.8rem;font-style:italic;">Powered by AI · Takes 2-3 minutes</p>
+      <p style="text-align:center;font-size:0.76rem;color:var(--smoke);opacity:0.6;margin-top:0.8rem;font-style:italic;">Powered by AI · Typically takes 2-3 minutes (may take longer). After submitting, you can safely close or refresh the page — sign back in later and refresh to retrieve your coin.</p>
     </div>
     <!-- Inline Support Card (exact copy requested by user) -->
     <section class="support-section" style="margin-top:1.5rem;max-width:680px;">
@@ -360,20 +360,22 @@
 
   <div class="coin-result-wrap fade-in">
     <!-- Loading state -->
-    <div id="coin-loading" class="coin-loading">
+      <div id="coin-loading" class="coin-loading">
       <div class="coin-loading-ring"></div>
       <div style="font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:0.5rem;">FORGING YOUR COIN</div>
       <div style="color:var(--smoke);font-size:0.9rem;" id="loading-status">Sending your photo to the forge...</div>
+      <div id="loading-note" style="font-size:0.78rem;color:var(--smoke);margin-top:0.6rem;">Coin generation may take several minutes. You can safely close this tab — sign back in and refresh later to retrieve your coin. Results are kept for 24 hours.</div>
     </div>
 
     <!-- Result state -->
     <div id="coin-result" style="display:none;text-align:center;">
       <div style="font-size:0.72rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);margin-bottom:0.8rem;opacity:0.8;">Your Coin is Forged</div>
       <h2 style="font-family:'Cinzel',serif;font-size:clamp(1.5rem,4vw,2rem);color:var(--white);margin-bottom:0.5rem;" id="result-name">—</h2>
+        <div id="result-timer" style="font-size:0.95rem;color:var(--smoke);margin-bottom:0.6rem;"></div>
       <p style="color:var(--smoke);font-size:0.9rem;margin-bottom:1.5rem;">Your personalised Khandaan Gold Coin</p>
       <img id="generated-coin-img" class="generated-coin" src="" alt="Your Khandaan Coin">
       <div style="display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
-        <button class="submit-btn" style="max-width:200px;margin-top:0;" onclick="downloadCoin()">⬇ Download Coin</button>
+        <button id="download-btn" class="submit-btn" style="max-width:200px;margin-top:0;" onclick="downloadCoin()">⬇ Download Coin</button>
         <button class="submit-btn" style="max-width:200px;margin-top:0;background:transparent;" onclick="goBackToMain()">← Generate Another</button>
       </div>
       <p style="font-size:0.75rem;color:var(--smoke);opacity:0.5;margin-top:1.2rem;font-style:italic;">Tag us #KhandaanCoin #GoldenMountainStudio</p>
@@ -766,6 +768,14 @@ window.restoreUserCoin = async function restoreUserCoin() {
       // If finished, adopt statusData for image fetch
       if (statusData && statusData.status === 'finished' && Array.isArray(statusData.result_urls) && statusData.result_urls[0]) {
         const coinURL = statusData.result_urls[0];
+          // ensure expiry is available for this job (if not, persist approximate 24h from now)
+          try {
+            const existing = localStorage.getItem('gms_job_expiry_' + jobId);
+            if (!existing) {
+              localStorage.setItem('gms_job_expiry_' + jobId, String(Date.now() + (24 * 60 * 60 * 1000)));
+            }
+            if (typeof startCountdownForJob === 'function') startCountdownForJob(jobId);
+          } catch (e) { /* ignore */ }
         const imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" } });
         if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
         const imageBlob = await imageResponse.blob();
@@ -916,6 +926,13 @@ async function handleSubmit() {
     if (!receiveData || !receiveData.job_id) throw new Error('Invalid backend response.');
 
     const jobId = receiveData.job_id;
+    // Set expiry 24 hours from now and persist locally so we can show a countdown later
+    try {
+      const expiryMs = Date.now() + (24 * 60 * 60 * 1000);
+      localStorage.setItem('gms_job_expiry_' + jobId, String(expiryMs));
+      // start a countdown UI for this job
+      if (typeof startCountdownForJob === 'function') startCountdownForJob(jobId);
+    } catch (e) { console.warn('Could not persist job expiry', e); }
     const pollUrl = `${API_BASE}/job/status/${jobId}`;
     let attempts = 0;
     const maxAttempts = 30;
@@ -1121,6 +1138,52 @@ function getSubs() { try { return JSON.parse(localStorage.getItem('gms_submissio
 function saveSubs(a) { localStorage.setItem('gms_submissions', JSON.stringify(a)); }
 function getCoinImg() { return localStorage.getItem('gms_coin_img') || null; }
 function saveCoinImg(d) { localStorage.setItem('gms_coin_img', d); }
+
+// ── Job expiry helpers (24-hour retention)
+function saveJobExpiry(jobId, expiryMs) {
+  try { localStorage.setItem('gms_job_expiry_' + jobId, String(expiryMs)); } catch (e) { console.warn(e); }
+}
+function getJobExpiry(jobId) {
+  try { const v = localStorage.getItem('gms_job_expiry_' + jobId); return v ? parseInt(v,10) : null; } catch { return null; }
+}
+
+// Countdown management
+window._gms_countdown_interval = null;
+function startCountdown(expiryMs, el) {
+  if (!el) return;
+  clearInterval(window._gms_countdown_interval);
+  function update() {
+    const now = Date.now();
+    const diff = expiryMs - now;
+    if (diff <= 0) {
+      el.textContent = 'This preview has expired and may be removed from our servers.';
+      const dl = document.getElementById('download-btn'); if (dl) dl.disabled = true;
+      clearInterval(window._gms_countdown_interval);
+      return;
+    }
+    const secs = Math.floor(diff / 1000);
+    const days = Math.floor(secs / 86400);
+    const hours = Math.floor((secs % 86400) / 3600);
+    const mins = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    let parts = [];
+    if (days) parts.push(days + 'd');
+    parts.push(String(hours).padStart(2,'0') + 'h');
+    parts.push(String(mins).padStart(2,'0') + 'm');
+    parts.push(String(s).padStart(2,'0') + 's');
+    el.textContent = 'Server will delete this coin in: ' + parts.join(' ');
+    const dl = document.getElementById('download-btn'); if (dl) dl.disabled = false;
+  }
+  update();
+  window._gms_countdown_interval = setInterval(update, 1000);
+}
+
+function startCountdownForJob(jobId) {
+  const expiry = getJobExpiry(jobId);
+  const el = document.getElementById('result-timer');
+  if (!expiry) return;
+  startCountdown(expiry, el);
+}
 
 // ── Toast ──
 function showToast(msg) {
