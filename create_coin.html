@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golden Mountain Studio — Khandaan Fan Coin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--gold:#C9933A;--gold-light:#E8B86D;--gold-pale:#F5E6C8;--gold-dark:#7A5220;--obsidian:#0E0C0A;--dark1:#1A1612;--dark2:#231E17;--dark3:#2E271E;--smoke:#9A9080;--ash:#C8BFB0;--white:#F8F4EE;--danger:#C0392B}
+  html{scroll-behavior:smooth}
+  body{font-family:'Crimson Pro',Georgia,serif;background:var(--obsidian);color:var(--ash);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.35}
+  .page{display:none;min-height:100vh;flex-direction:column;align-items:center}
+  .page.active{display:flex}
+
+  /* ── HEADER ── */
+  .site-header{width:100%;padding:1.2rem 2rem;text-align:center;border-bottom:1px solid rgba(201,147,58,0.2);background:linear-gradient(to bottom,rgba(201,147,58,0.07),transparent);display:flex;align-items:center;justify-content:space-between}
+  .header-logo{display:flex;align-items:center;gap:0.8rem}
+  .logo-img{height:52px;filter:drop-shadow(0 0 8px rgba(201,147,58,0.3))}
+  .header-titles{text-align:left}
+  .studio-logo{font-family:'Cinzel',serif;font-size:clamp(0.85rem,2.5vw,1.1rem);font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold)}
+  .studio-tagline{font-size:0.75rem;color:var(--smoke);letter-spacing:0.06em;font-style:italic}
+  .header-user{display:flex;align-items:center;gap:0.7rem}
+  .user-email{font-size:0.75rem;color:var(--smoke);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .signout-btn{background:transparent;border:1px solid rgba(202, 147, 59, 0.3);color:var(--gold);font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.15em;padding:0.4rem 0.8rem;cursor:pointer;transition:all 0.2s}
+  .signout-btn:hover{background:rgba(201,147,58,0.1)}
+
+  /* ── NAV TABS ── */
+  .nav-tabs{display:flex;border-bottom:1px solid rgba(201,147,58,0.15);width:100%;justify-content:center;background:var(--dark1)}
+  .nav-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--smoke);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.8rem 1.3rem;cursor:pointer;transition:all 0.2s}
+  .nav-tab:hover{color:var(--gold-light)}
+  .nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+  /* ── HERO ── */
+  .hero{width:100%;max-width:700px;padding:2.5rem 2rem 1.5rem;text-align:center}
+  .hero-label{font-size:0.72rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem;opacity:0.8}
+  .hero h1{font-family:'Cinzel',serif;font-size:clamp(1.8rem,5vw,3rem);font-weight:700;color:var(--white);line-height:1.1;margin-bottom:0.8rem}
+  .hero h1 span{color:var(--gold-light);display:block}
+  .hero p{font-size:clamp(0.95rem,2.5vw,1.1rem);color:var(--smoke);line-height:1.7;max-width:520px;margin:0 auto 1rem;font-weight:300}
+  .gold-divider{display:flex;align-items:center;gap:1rem;width:100%;max-width:400px;margin:0 auto 1.5rem}
+  .gold-divider::before,.gold-divider::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,var(--gold-dark))}
+  .gold-divider::after{background:linear-gradient(to left,transparent,var(--gold-dark))}
+  .gold-divider-icon{color:var(--gold);font-size:1rem}
+
+  /* ── FORM ── */
+  .form-card{background:var(--dark2);border:1px solid rgba(201,147,58,0.25);padding:2rem;width:100%;max-width:540px;margin:0 auto}
+  .form-section-title{font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem;opacity:0.8}
+  .field-group{margin-bottom:1.3rem}
+  label.field-label{display:block;font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--smoke);margin-bottom:0.5rem}
+  input[type="text"],input[type="email"],input[type="password"]{width:100%;background:var(--dark3);border:1px solid rgba(201,147,58,0.2);padding:0.8rem 1rem;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;outline:none;transition:border-color 0.2s}
+  input:focus{border-color:var(--gold)}
+  input::placeholder{color:rgba(154,144,128,0.5)}
+  .photo-drop{border:1.5px dashed rgba(201,147,58,0.3);padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--dark3);position:relative}
+  .photo-drop:hover,.photo-drop.dragover{border-color:var(--gold);background:rgba(201,147,58,0.05)}
+  .photo-drop input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .photo-drop-icon{width:38px;height:38px;margin:0 auto 0.7rem;border:1.5px solid rgba(201,147,58,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.1rem}
+  .photo-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);margin:0 auto 0.5rem;display:none}
+  .submit-btn{width:100%;background:var(--gold-dark);border:1px solid var(--gold);color:var(--gold-pale);font-family:'Cinzel',serif;font-size:0.82rem;letter-spacing:0.25em;text-transform:uppercase;padding:0.9rem;cursor:pointer;transition:all 0.2s;margin-top:1rem}
+  .submit-btn:hover{background:var(--gold);color:var(--obsidian)}
+  .submit-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+  /* ── GOOGLE SIGN IN BTN ── */
+  .google-btn{width:100%;background:var(--dark3);border:1px solid rgba(201,147,58,0.3);color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;padding:0.85rem 1rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.8rem;margin-bottom:1rem}
+  .google-btn:hover{border-color:var(--gold);background:rgba(201,147,58,0.05)}
+  .google-btn svg{width:20px;height:20px;flex-shrink:0}
+  .divider-or{display:flex;align-items:center;gap:1rem;margin:1rem 0;color:var(--smoke);font-size:0.8rem}
+  .divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:rgba(201,147,58,0.15)}
+
+  /* ── COIN RESULT ── */
+  .coin-result-wrap{width:100%;max-width:540px;padding:2rem;text-align:center}
+  .generated-coin{width:100%;max-width:400px;border:1px solid rgba(201,147,58,0.4);display:block;margin:0 auto 1.5rem;border-radius:2px}
+  .coin-loading{padding:3rem;text-align:center}
+  .coin-loading-ring{width:60px;height:60px;border:3px solid rgba(201,147,58,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem}
+
+  /* ── ABOUT ── */
+  .about-section{width:100%;max-width:680px;padding:3rem 2rem;text-align:center}
+  .about-name{font-family:'Cinzel',serif;font-size:1.5rem;color:var(--white);margin-bottom:0.3rem}
+  .about-role{font-size:0.78rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);opacity:0.8;margin-bottom:1.2rem}
+  .about-bio{color:var(--smoke);font-size:1rem;line-height:1.8;max-width:500px;margin:0 auto 1.8rem}
+  .insta-btn{display:inline-flex;align-items:center;gap:0.5rem;border:1px solid var(--gold);color:var(--gold);padding:0.7rem 1.5rem;text-decoration:none;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.15em;transition:all 0.2s}
+  .insta-btn:hover{background:rgba(201,147,58,0.1)}
+
+  /* ── SUPPORT SECTION ── */
+  .support-section{width:100%;max-width:580px;padding:2rem;margin:1.5rem auto}
+  .support-card{background:var(--dark2);border:1px solid rgba(201,147,58,0.2);padding:2rem;text-align:center;position:relative;overflow:hidden}
+  .support-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent)}
+  .support-label{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);opacity:0.7;margin-bottom:0.8rem}
+  .support-title{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--white);margin-bottom:0.8rem}
+  .support-desc{font-size:0.95rem;color:var(--smoke);line-height:1.7;margin-bottom:0.6rem;max-width:420px;margin-left:auto;margin-right:auto}
+  .support-optional{font-size:0.8rem;color:var(--gold);opacity:0.7;font-style:italic;margin-bottom:1.5rem}
+  .upi-box{background:var(--dark3);border:1px solid rgba(201,147,58,0.25);padding:1.2rem;margin-bottom:1.2rem}
+  .upi-label{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--smoke);margin-bottom:0.4rem}
+  .upi-id{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold-light);letter-spacing:0.05em}
+  .copy-btn{background:transparent;border:1px solid rgba(201,147,58,0.3);color:var(--gold);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.15em;padding:0.4rem 0.9rem;cursor:pointer;transition:all 0.2s;margin-top:0.6rem}
+  .copy-btn:hover{background:rgba(201,147,58,0.1)}
+  .support-steps{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+  .support-step{background:var(--dark3);border:1px solid rgba(201,147,58,0.1);padding:0.8rem 1rem;flex:1;min-width:130px;text-align:center}
+  .step-num{font-family:'Cinzel',serif;font-size:1.2rem;color:var(--gold);margin-bottom:0.3rem}
+  .step-text{font-size:0.8rem;color:var(--smoke);line-height:1.4}
+
+  /* ── ADMIN ── */
+  #admin-page{background:var(--obsidian);min-height:100vh;width:100%;align-items:stretch;flex-direction:row!important;padding:0}
+  .admin-layout{display:flex;min-height:100vh;width:100%}
+  .admin-sidebar{width:210px;flex-shrink:0;background:var(--dark1);border-right:1px solid rgba(201,147,58,0.15);padding:2rem 1.5rem;display:flex;flex-direction:column;gap:0.4rem}
+  .admin-logo-wrap{display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem}
+  .admin-logo-img{width:32px;height:32px;border-radius:50%}
+  .admin-logo-txt{font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.2em;color:var(--gold);opacity:0.8;text-transform:uppercase}
+  .admin-nav-btn{background:transparent;border:none;color:var(--smoke);font-family:'Crimson Pro',serif;font-size:0.9rem;padding:0.55rem 0.8rem;text-align:left;cursor:pointer;transition:all 0.15s;border-radius:1px}
+  .admin-nav-btn:hover,.admin-nav-btn.active{background:rgba(201,147,58,0.1);color:var(--gold-light)}
+  .admin-logout{margin-top:auto;background:transparent;border:1px solid rgba(201,147,58,0.2);color:var(--smoke);font-family:'Crimson Pro',serif;font-size:0.85rem;padding:0.6rem 1rem;cursor:pointer;transition:all 0.15s}
+  .admin-logout:hover{border-color:var(--danger);color:#e07065}
+  .admin-main{flex:1;padding:2rem;overflow-y:auto}
+  .admin-section{display:none}
+  .admin-section.active{display:block}
+  .admin-section-header{margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid rgba(201,147,58,0.15)}
+  .admin-section-header h2{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--white)}
+  .admin-section-header p{font-size:0.88rem;color:var(--smoke);margin-top:0.3rem}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;margin-bottom:2rem}
+  .stat-card{background:var(--dark2);border:1px solid rgba(201,147,58,0.15);padding:1.1rem}
+  .stat-card-label{font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--smoke);margin-bottom:0.4rem}
+  .stat-card-value{font-family:'Cinzel',serif;font-size:1.7rem;color:var(--gold-light)}
+  .submissions-table-wrap{overflow-x:auto}
+  .submissions-table{width:100%;border-collapse:collapse;font-size:0.88rem}
+  .submissions-table th{background:var(--dark2);border-bottom:1px solid rgba(201,147,58,0.2);padding:0.7rem 1rem;text-align:left;color:var(--gold);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;font-weight:400}
+  .submissions-table td{padding:0.8rem 1rem;border-bottom:1px solid rgba(201,147,58,0.07);color:var(--ash);vertical-align:middle}
+  .submissions-table tr:hover td{background:rgba(201,147,58,0.03)}
+  .sub-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid rgba(201,147,58,0.3);cursor:pointer}
+  .dl-btn{background:transparent;border:1px solid rgba(201,147,58,0.3);color:var(--gold);font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.15em;padding:0.3rem 0.6rem;cursor:pointer;transition:all 0.2s}
+  .dl-btn:hover{background:rgba(201,147,58,0.1)}
+  .search-bar{display:flex;gap:0.8rem;margin-bottom:1.2rem}
+  .search-bar input{background:var(--dark2);border:1px solid rgba(201,147,58,0.2);color:var(--ash);font-family:'Crimson Pro',serif;font-size:0.95rem;padding:0.6rem 1rem;outline:none;flex:1;transition:border-color 0.2s}
+  .search-bar input:focus{border-color:var(--gold)}
+  .export-btn{background:transparent;border:1px solid rgba(201,147,58,0.3);color:var(--gold);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.6rem 1rem;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+  .export-btn:hover{background:rgba(201,147,58,0.1)}
+  .coin-upload-box{border:1.5px dashed rgba(201,147,58,0.3);padding:2rem;text-align:center;background:var(--dark3);position:relative;cursor:pointer;max-width:400px;margin-bottom:1.5rem}
+  .coin-upload-box:hover{border-color:var(--gold);background:rgba(201,147,58,0.05)}
+  .coin-upload-box input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .coin-preview-img{width:120px;height:120px;object-fit:contain;display:none;margin:0 auto 0.8rem}
+
+  /* ── LOGIN PAGE ── */
+  .login-page-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;width:100%;padding:2rem}
+  .login-card{background:var(--dark2);border:1px solid rgba(201,147,58,0.25);padding:2.5rem;width:100%;max-width:380px;text-align:center}
+  .login-logo{width:70px;height:70px;border-radius:50%;margin:0 auto 1rem;filter:drop-shadow(0 0 8px rgba(201,147,58,0.3))}
+  .login-title{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:0.3rem;font-weight:400}
+  .login-sub{font-size:0.82rem;color:var(--smoke);margin-bottom:1.8rem}
+  .auth-error{font-size:0.82rem;color:#e07065;margin-bottom:0.8rem;display:none;padding:0.6rem;background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.2)}
+
+  /* ── UTILS ── */
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(201,147,58,0.3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .fade-in{animation:fadeIn 0.4s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--dark2);border:1px solid var(--gold);color:var(--gold-light);font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.15em;padding:0.7rem 1.5rem;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none}
+  .toast.show{opacity:1}
+  @media(max-width:600px){.admin-sidebar{display:none}.admin-main{padding:1rem}.form-card{padding:1.2rem}.header-user .user-email{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN PAGE ══════════ -->
+<div class="page active" id="login-page">
+  <div class="login-page-wrap">
+    <div class="login-card fade-in">
+      <img src="logo.png" alt="GMS" class="login-logo">
+      <div class="login-title">Golden Mountain Studio</div>
+      <div class="login-sub">Sign in to claim your Khandaan Coin</div>
+      <div class="auth-error" id="auth-error"></div>
+
+      <!-- Google Sign In -->
+      <button class="google-btn" onclick="signInWithGoogle()">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="divider-or">or</div>
+
+      <div class="field-group">
+        <label class="field-label">Email</label>
+        <input type="email" id="login-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')signInEmail()" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')signInEmail()" />
+      </div>
+      <button class="submit-btn" onclick="signInEmail()">Sign In</button>
+      <button onclick="signUpEmail()" style="background:none;border:none;color:var(--smoke);font-family:'Crimson Pro',serif;font-size:0.88rem;cursor:pointer;margin-top:0.8rem;display:block;width:100%;transition:color 0.2s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--smoke)'">New here? Create account →</button>
+
+      <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(201,147,58,0.1);">
+        <button onclick="goAdminLogin()" style="background:none;border:none;color:var(--smoke);font-family:'Crimson Pro',serif;font-size:0.75rem;cursor:pointer;opacity:0.5;letter-spacing:0.05em;">Studio Admin →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MAIN APP PAGE ══════════ -->
+<div class="page" id="main-page">
+  <header class="site-header">
+    <div class="header-logo">
+      <img src="logo.png" alt="GMS Logo" class="logo-img">
+      <div class="header-titles">
+        <div class="studio-logo">Golden Mountain Studio</div>
+        <div class="studio-tagline">Project Khandaan · Coin Drop</div>
+      </div>
+    </div>
+    <div class="header-user">
+      <span class="user-email" id="user-email-display"></span>
+      <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchMainTab('home',this)">Claim Coin</button>
+    <button class="nav-tab" onclick="switchMainTab('support',this)">Support Project</button>
+    <button class="nav-tab" onclick="switchMainTab('about',this)">About</button>
+  </div>
+
+  <!-- ── CLAIM COIN TAB ── -->
+  <div id="tab-home" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+    <section class="hero">
+      <div class="hero-label">Community Drop — Limited Access</div>
+      <h1>Claim Your <span>Khandaan Coin</span></h1>
+      <p>Upload your photo &amp; enter your name. Our AI forges a personalised Khandaan Gold Coin just for you.</p>
+      <div class="gold-divider"><span class="gold-divider-icon">✦</span></div>
+    </section>
+
+    <div class="form-card fade-in">
+      <div class="form-section-title">Your Details</div>
+      <div class="field-group">
+        <label class="field-label" for="fan-name">Your Name (appears on coin)</label>
+        <input type="text" id="fan-name" placeholder="Enter your full name" maxlength="40" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Your Photo</label>
+        <div class="photo-drop" id="photo-drop">
+          <input type="file" id="photo-input" accept="image/*" />
+          <img class="photo-preview" id="photo-preview" src="" alt="preview" />
+          <div id="photo-drop-inner">
+            <div class="photo-drop-icon">↑</div>
+            <p style="color:var(--smoke);">Tap to upload your photo</p>
+            <span style="font-size:0.73rem;color:var(--smoke);opacity:0.6;display:block;margin-top:0.3rem">JPG or PNG · Max 5MB</span>
+          </div>
+        </div>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">⚡ Generate My Khandaan Coin</button>
+      <p style="text-align:center;font-size:0.76rem;color:var(--smoke);opacity:0.6;margin-top:0.8rem;font-style:italic;">Powered by AI · Takes 2-3 minutes</p>
+    </div>
+    <!-- Inline Support Card (exact copy requested by user) -->
+    <section class="support-section" style="margin-top:1.5rem;max-width:680px;">
+      <div class="support-card fade-in">
+        <div class="support-label">Completely Optional</div>
+        <div class="support-title">Support Project Khandaan</div>
+        <p class="support-desc">This game and coin generator are built solo, powered by passion and AI. Generating coins costs real server money — if you'd like to help keep this alive, every contribution goes directly to server costs.</p>
+
+        <p style="margin-top:0.6rem;font-size:0.95rem;color:var(--smoke);font-style:italic;">✦ You don't need to pay anything to claim your coin. This is purely optional. ✦</p>
+
+        <div class="upi-box" style="margin-top:0.8rem;">
+          <div class="upi-label">UPI ID</div>
+          <div class="upi-id">golden-mountain-studio@ybl</div>
+          <button class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+        </div>
+
+        <div style="margin-top:0.8rem;color:var(--smoke);font-size:0.9rem;">Open GPay, PhonePe, or any UPI app and send to the UPI ID above</div>
+
+        <div class="support-steps" style="margin-top:1rem;justify-content:center;">
+          <div class="support-step" style="min-width:120px;">
+            <div class="step-num">1</div>
+            <div class="step-text">Open any UPI app</div>
+          </div>
+          <div class="support-step" style="min-width:120px;">
+            <div class="step-num">2</div>
+            <div class="step-text">Send to the UPI ID above</div>
+          </div>
+          <div class="support-step" style="min-width:120px;">
+            <div class="step-num">3</div>
+            <div class="step-text">Any amount — even ₹10 helps!</div>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;font-size:0.9rem;color:var(--smoke);">💛 100% of contributions go to  server costs, keeping the coin generator free for everyone.</div>
+      </div>
+    </section>
+    <div style="height:3rem;"></div>
+  </div>
+
+  <!-- ── SUPPORT TAB ── -->
+  <div id="tab-support" style="width:100%;display:none;flex-direction:column;align-items:center;">
+    <section class="support-section">
+      <div class="support-card fade-in">
+        <div class="support-label">Completely Optional</div>
+        <div class="support-title">Support Project Khandaan</div>
+        <p class="support-desc">This game and coin generator are built solo, powered by passion and AI. Generating coins costs real server money — if you'd like to help keep this alive, every contribution goes directly to server costs.</p>
+        <p class="support-optional">✦ You don't need to pay anything to claim your coin. This is purely optional. ✦</p>
+
+        <div class="upi-box">
+          <div class="upi-label">UPI ID</div>
+          <div class="upi-id">golden-mountain-studio@ybl</div>
+          <button class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+        </div>
+
+        <div style="font-size:0.78rem;color:var(--smoke);margin-bottom:1rem;font-style:italic;">Open GPay, PhonePe, or any UPI app and send to the UPI ID above</div>
+
+        <div class="support-steps">
+          <div class="support-step">
+            <div class="step-num">1</div>
+            <div class="step-text">Open any UPI app</div>
+          </div>
+          <div class="support-step">
+            <div class="step-num">2</div>
+            <div class="step-text">Send to the UPI ID above</div>
+          </div>
+          <div class="support-step">
+            <div class="step-num">3</div>
+            <div class="step-text">Any amount — even ₹10 helps!</div>
+          </div>
+        </div>
+
+        <div style="margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid rgba(201,147,58,0.1);font-size:0.82rem;color:var(--smoke);line-height:1.6;">
+          💛 100% of contributions go to AI server costs, keeping the coin generator free for everyone.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ── ABOUT TAB ── -->
+  <div id="tab-about" style="width:100%;display:none;flex-direction:column;align-items:center;">
+    <section class="about-section fade-in">
+      <div style="width:80px;height:80px;border-radius:50%;border:2px solid var(--gold);background:var(--dark2);margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <img src="logo.png" alt="GMS" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+      </div>
+      <div class="about-name">Hemraj</div>
+      <div class="about-role">Software Development Engineer · AI Researcher</div>
+      <p class="about-bio">Creator of Golden Mountain Studio and Project Khandaan — a KGF-inspired mobile action game built solo using the power of AI. Hemraj is a software engineer and AI researcher turning a cinematic vision into an interactive world, one devlog at a time.</p>
+      <a href="https://www.instagram.com/golden_mountain_studio" target="_blank" class="insta-btn">
+        📸 &nbsp;Follow on Instagram
+      </a>
+    </section>
+  </div>
+
+  <!-- subtle admin link -->
+  <div style="width:100%;text-align:center;padding:1rem;opacity:0.3;margin-top:auto;">
+    <button onclick="goAdminLogin()" style="background:none;border:none;color:var(--smoke);font-family:'Crimson Pro',serif;font-size:0.75rem;cursor:pointer;">Studio Admin →</button>
+  </div>
+</div>
+
+<!-- ══════════ COIN RESULT PAGE ══════════ -->
+<div class="page" id="result-page">
+  <header class="site-header">
+    <div class="header-logo">
+      <img src="logo.png" alt="GMS Logo" class="logo-img">
+      <div class="header-titles">
+        <div class="studio-logo">Golden Mountain Studio</div>
+        <div class="studio-tagline">Project Khandaan</div>
+      </div>
+    </div>
+    <div class="header-user">
+      <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="coin-result-wrap fade-in">
+    <!-- Loading state -->
+    <div id="coin-loading" class="coin-loading">
+      <div class="coin-loading-ring"></div>
+      <div style="font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:0.5rem;">FORGING YOUR COIN</div>
+      <div style="color:var(--smoke);font-size:0.9rem;" id="loading-status">Sending your photo to the forge...</div>
+    </div>
+
+    <!-- Result state -->
+    <div id="coin-result" style="display:none;text-align:center;">
+      <div style="font-size:0.72rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);margin-bottom:0.8rem;opacity:0.8;">Your Coin is Forged</div>
+      <h2 style="font-family:'Cinzel',serif;font-size:clamp(1.5rem,4vw,2rem);color:var(--white);margin-bottom:0.5rem;" id="result-name">—</h2>
+      <p style="color:var(--smoke);font-size:0.9rem;margin-bottom:1.5rem;">Your personalised Khandaan Gold Coin</p>
+      <img id="generated-coin-img" class="generated-coin" src="" alt="Your Khandaan Coin">
+      <div style="display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
+        <button class="submit-btn" style="max-width:200px;margin-top:0;" onclick="downloadCoin()">⬇ Download Coin</button>
+        <button class="submit-btn" style="max-width:200px;margin-top:0;background:transparent;" onclick="goBackToMain()">← Generate Another</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--smoke);opacity:0.5;margin-top:1.2rem;font-style:italic;">Tag us #KhandaanCoin #GoldenMountainStudio</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="coin-error" style="display:none;text-align:center;padding:2rem;">
+      <div style="font-size:2rem;margin-bottom:1rem;">⚠️</div>
+      <div style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:0.5rem;">Generation Failed</div>
+      <div style="color:var(--smoke);font-size:0.9rem;margin-bottom:1.5rem;" id="error-msg">Something went wrong. Please try again.</div>
+      <button class="submit-btn" style="max-width:200px;" onclick="goBackToMain()">← Try Again</button>
+    </div>
+    <!-- Support Card on coin forging/result page (exact copy requested) -->
+    <section class="support-section" style="margin-top:1.5rem;max-width:680px;">
+      <div class="support-card fade-in">
+        <div class="support-label">Completely Optional</div>
+        <div class="support-title">Support Project Khandaan</div>
+        <p class="support-desc">This game and coin generator are built solo, powered by passion and AI. Generating coins costs real server money — if you'd like to help keep this alive, every contribution goes directly to server costs.</p>
+
+        <p style="margin-top:0.6rem;font-size:0.95rem;color:var(--smoke);font-style:italic;">✦ You don't need to pay anything to claim your coin. This is purely optional. ✦</p>
+
+        <div class="upi-box" style="margin-top:0.8rem;">
+          <div class="upi-label">UPI ID</div>
+          <div class="upi-id">golden-mountain-studio@ybl</div>
+          <button class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+        </div>
+
+        <div style="margin-top:0.8rem;color:var(--smoke);font-size:0.9rem;">Open GPay, PhonePe, or any UPI app and send to the UPI ID above</div>
+
+        <div class="support-steps" style="margin-top:1rem;justify-content:center;">
+          <div class="support-step" style="min-width:120px;">
+            <div class="step-num">1</div>
+            <div class="step-text">Open any UPI app</div>
+          </div>
+          <div class="support-step" style="min-width:120px;">
+            <div class="step-num">2</div>
+            <div class="step-text">Send to the UPI ID above</div>
+          </div>
+          <div class="support-step" style="min-width:120px;">
+            <div class="step-num">3</div>
+            <div class="step-text">Any amount — even ₹10 helps!</div>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;font-size:0.9rem;color:var(--smoke);">💛 100% of contributions go to AI server costs, keeping the coin generator free for everyone.</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ══════════ ADMIN LOGIN PAGE ══════════ -->
+<div class="page" id="admin-login-page">
+  <div class="login-page-wrap">
+    <div class="login-card fade-in">
+      <img src="logo.png" alt="GMS" class="login-logo">
+      <div class="login-title">Studio Admin</div>
+      <div class="login-sub">Internal access only</div>
+      <div class="auth-error" id="admin-auth-error"></div>
+      <div class="field-group" style="margin-top:1rem;">
+        <label class="field-label">Admin Password</label>
+        <input type="password" id="admin-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')adminLogin()" />
+      </div>
+      <button class="submit-btn" onclick="adminLogin()">Enter</button>
+      <button onclick="showPage('login-page')" style="background:none;border:none;color:var(--smoke);font-family:'Crimson Pro',serif;font-size:0.85rem;cursor:pointer;margin-top:0.8rem;display:block;width:100%;">← Back to Site</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADMIN DASHBOARD ══════════ -->
+<div class="page" id="admin-page">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo-wrap">
+        <img src="logo.png" alt="GMS" class="admin-logo-img">
+        <span class="admin-logo-txt">GMS Admin</span>
+      </div>
+      <button class="admin-nav-btn active" onclick="switchAdminTab('dashboard',event)">Dashboard</button>
+      <button class="admin-nav-btn" onclick="switchAdminTab('submissions',event)">Submissions</button>
+      <button class="admin-nav-btn" onclick="switchAdminTab('coin',event)">Coin Image</button>
+      <button class="admin-logout" onclick="showPage('login-page')">Logout</button>
+    </aside>
+
+    <main class="admin-main">
+      <!-- Dashboard -->
+      <div class="admin-section active" id="admin-dashboard">
+        <div class="admin-section-header">
+          <h2>Dashboard</h2>
+          <p>Overview of all Khandaan Coin submissions</p>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-card-label">Total Submissions</div><div class="stat-card-value" id="stat-total">0</div></div>
+          <div class="stat-card"><div class="stat-card-label">Coins Generated</div><div class="stat-card-value" id="stat-coins">0</div></div>
+          <div class="stat-card"><div class="stat-card-label">Today</div><div class="stat-card-value" id="stat-today">0</div></div>
+        </div>
+        <div style="background:var(--dark2);border:1px solid rgba(201,147,58,0.15);padding:1.5rem;">
+          <div style="font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.25em;color:var(--gold);margin-bottom:1rem;text-transform:uppercase;opacity:0.8;">Recent Submissions</div>
+          <div id="recent-list"></div>
+        </div>
+      </div>
+
+      <!-- Submissions -->
+      <div class="admin-section" id="admin-submissions">
+        <div class="admin-section-header">
+          <h2>All Submissions</h2>
+          <p>Every fan — click photo to download</p>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Search by name..." oninput="renderTable()" />
+          <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+        </div>
+        <div class="submissions-table-wrap">
+          <table class="submissions-table">
+            <thead><tr><th>Photo</th><th>Name</th><th>Email</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" style="display:none;text-align:center;padding:3rem;color:var(--smoke);font-style:italic;">No submissions yet.</div>
+      </div>
+
+      <!-- Coin Image Upload -->
+      <div class="admin-section" id="admin-coin">
+        <div class="admin-section-header">
+          <h2>Coin Image</h2>
+          <p>Upload a fallback coin image shown when the API is unavailable</p>
+        </div>
+        <div class="coin-upload-box">
+          <input type="file" id="coin-file-input" accept="image/*" onchange="handleCoinUpload(this)" />
+          <img id="coin-preview-img" class="coin-preview-img" src="" alt="">
+          <div id="coin-upload-inner">
+            <div class="photo-drop-icon" style="margin:0 auto 0.8rem;">⬆</div>
+            <p style="color:var(--smoke);">Click to upload coin image</p>
+            <span style="font-size:0.73rem;color:var(--smoke);opacity:0.6;display:block;margin-top:0.3rem">PNG with transparent bg recommended</span>
+          </div>
+        </div>
+        <div id="coin-status" style="color:var(--gold);font-size:0.88rem;margin-top:0.5rem;"></div>
+        <div id="current-coin-wrap" style="display:none;margin-top:1.5rem;padding:1.5rem;background:var(--dark2);border:1px solid rgba(201,147,58,0.15);">
+          <div style="font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:1rem;text-transform:uppercase;">Current Coin Image</div>
+          <img id="current-coin-img" src="" alt="Current Coin" style="max-width:180px;display:block;margin:0 auto;">
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC2VLFMzbCAkKSE28UXkksrNi71xAAdX9o",
+  authDomain: "golden-mountain-studio.firebaseapp.com",
+  projectId: "golden-mountain-studio",
+  storageBucket: "golden-mountain-studio.appspot.com",
+  messagingSenderId: "743967078090",
+  appId: "1:743967078090:web:4b6eced67267f0a0186633",
+  measurementId: "G-34FXRQPR27"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// Expose to global scope
+window._auth = auth;
+window._provider = provider;
+window._fbSignOut = fbSignOut;
+window._signInWithPopup = signInWithPopup;
+window._signInWithRedirect = signInWithRedirect;
+window._createUser = createUserWithEmailAndPassword;
+window._signInEmail = signInWithEmailAndPassword;
+
+// Auth state listener
+onAuthStateChanged(auth, user => {
+  if (user) {
+    const emailDisplay = document.getElementById('user-email-display');
+    if (emailDisplay) emailDisplay.textContent = user.email || user.displayName || '';
+    if (document.getElementById('main-page').classList.contains('active') ||
+        document.getElementById('login-page').classList.contains('active')) {
+      showPage('main-page');
+    }
+  } else {
+    if (!document.getElementById('admin-login-page').classList.contains('active') &&
+        !document.getElementById('admin-page').classList.contains('active')) {
+      showPage('login-page');
+    }
+  }
+});
+
+// Handle redirect results (required when using signInWithRedirect)
+(async function handlePossibleRedirectResult(){
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      const emailDisplay = document.getElementById('user-email-display');
+      if (emailDisplay) emailDisplay.textContent = result.user.email || result.user.displayName || '';
+    }
+  } catch (e) {
+    const errEl = document.getElementById('auth-error');
+    if (errEl) {
+      errEl.style.display = 'block';
+      if (e.code === 'auth/unauthorized-domain') {
+        errEl.textContent = 'This domain is not authorized for OAuth operations. Add your domain in the Firebase Console -> Authentication -> Authorized domains.';
+      } else {
+        errEl.textContent = (e.message||String(e)).replace('Firebase: ','').replace(/\(auth.*\)/,'');
+      }
+    }
+  }
+}());
+
+// Define auth functions globally
+window.signInWithGoogle = async () => {
+  const err = document.getElementById('auth-error');
+  err.style.display = 'none';
+  try {
+    const result = await window._signInWithPopup(auth, provider);
+    if (result && result.user) {
+      const emailDisplay = document.getElementById('user-email-display');
+      if (emailDisplay) emailDisplay.textContent = result.user.email || result.user.displayName || '';
+      showPage('main-page');
+    }
+  } catch (e) {
+    if (e.code === 'auth/popup-blocked') {
+      // Fallback to redirect
+      try {
+        await window._signInWithRedirect(auth, provider);
+      } catch (e2) {
+        err.style.display = 'block';
+        err.textContent = 'This domain is not authorized for OAuth operations. Add your domain in the Firebase Console -> Authentication -> Authorized domains.';
+      }
+    } else if (e.code === 'auth/unauthorized-domain') {
+      err.style.display = 'block';
+      err.textContent = 'This domain is not authorized for OAuth operations. Add your domain in the Firebase Console -> Authentication -> Authorized domains.';
+    } else {
+      err.style.display = 'block';
+      err.textContent = (e.message||String(e)).replace('Firebase: ','').replace(/\(auth.*\)/,'');
+    }
+  }
+};
+
+window.signInEmail = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const err = document.getElementById('auth-error');
+  err.style.display = 'none';
+  if (!email || !pass) { err.style.display='block'; err.textContent='Please enter email and password.'; return; }
+  try {
+    const result = await window._signInEmail(auth, email, pass);
+    if (result && result.user) {
+      const emailDisplay = document.getElementById('user-email-display');
+      if (emailDisplay) emailDisplay.textContent = result.user.email || '';
+      showPage('main-page');
+    }
+  } catch(e) {
+    err.style.display = 'block';
+    err.textContent = e.code === 'auth/invalid-credential' ? 'Incorrect email or password.' : e.message.replace('Firebase: ','').replace(/\(auth.*\)/,'');
+  }
+};
+
+window.signUpEmail = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const err = document.getElementById('auth-error');
+  err.style.display = 'none';
+  if (!email || !pass) { err.style.display='block'; err.textContent='Please enter email and password.'; return; }
+  if (pass.length < 6) { err.style.display='block'; err.textContent='Password must be at least 6 characters.'; return; }
+  try {
+    const result = await window._createUser(auth, email, pass);
+    if (result && result.user) {
+      const emailDisplay = document.getElementById('user-email-display');
+      if (emailDisplay) emailDisplay.textContent = result.user.email || '';
+      showToast('Account created! Welcome.');
+      showPage('main-page');
+    }
+  } catch(e) {
+    err.style.display = 'block';
+    err.textContent = e.message.replace('Firebase: ','').replace(/\(auth.*\)/,'');
+  }
+};
+
+window.signOut = async () => {
+  await window._fbSignOut(auth);
+  showPage('login-page');
+};
+</script>
+
+<script>
+// ── Config ──
+const ADMIN_PASSWORD = 'Khandaan2025';
+// Replace with your actual FastAPI endpoint
+const API_ENDPOINT = 'https://YOUR-BACKEND.onrender.com/generate-coin';
+
+let photoDataURL = null;
+let photoFile = null;
+let currentUserPhoto = null;
+let currentCoinDataURL = null;
+
+// ── Page routing ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goAdminLogin() { showPage('admin-login-page'); }
+function goBackToMain() {
+  document.getElementById('fan-name').value = '';
+  document.getElementById('photo-input').value = '';
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-drop-inner').style.display = 'block';
+  photoDataURL = null; photoFile = null;
+  showPage('main-page');
+}
+
+// ── Main nav tabs ──
+function switchMainTab(tab, btn) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['home','support','about'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.style.display = t === tab ? 'flex' : 'none';
+  });
+}
+
+// ── Photo upload ──
+document.getElementById('photo-input').addEventListener('change', function() {
+  const file = this.files[0]; if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Photo must be under 5MB.'); return; }
+  photoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoDataURL = e.target.result;
+    const prev = document.getElementById('photo-preview');
+    prev.src = photoDataURL; prev.style.display = 'block';
+    document.getElementById('photo-drop-inner').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+
+const dropEl = document.getElementById('photo-drop');
+dropEl.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('dragover'); });
+dropEl.addEventListener('dragleave', () => dropEl.classList.remove('dragover'));
+dropEl.addEventListener('drop', e => {
+  e.preventDefault(); dropEl.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById('photo-input').files = dt.files;
+    document.getElementById('photo-input').dispatchEvent(new Event('change'));
+  }
+});
+
+// ── Generate Coin via FastAPI ──
+async function handleSubmit() {
+  const name = document.getElementById('fan-name').value.trim();
+  if (!name) { showToast('Please enter your name.'); return; }
+  if (!photoFile) { showToast('Please upload a photo.'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  const originalBtnText = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending to forge...';
+
+  // Save submission to localStorage
+  const sub = { id: Date.now(), name, email: (window._auth?.currentUser?.email || ''), photo: photoDataURL, date: new Date().toISOString() };
+  const all = getSubs(); all.unshift(sub); saveSubs(all);
+
+  // Show result page with loading
+  document.getElementById('result-name').textContent = name;
+  document.getElementById('coin-loading').style.display = 'block';
+  document.getElementById('coin-result').style.display = 'none';
+  document.getElementById('coin-error').style.display = 'none';
+  showPage('result-page');
+
+  const loadingEl = document.getElementById('loading-status');
+  const setLoadingText = text => { if (loadingEl) loadingEl.textContent = text; };
+  setLoadingText('Uploading your photo...');
+
+  try {
+    
+    const API_BASE = "https://unurgently-gastight-marchelle.ngrok-free.dev";
+    const receiveForm = new FormData();
+    receiveForm.append('job_type', 'coin_preview');
+    receiveForm.append('params', JSON.stringify({ upper_name: name, lower_name: 'NARACHI' }));
+    receiveForm.append('files', photoFile, photoFile.name);
+
+    const receiveResponse = await fetch(`${API_BASE}/job/receive`, {
+      method: 'POST',
+      headers: {
+    "ngrok-skip-browser-warning": "true"
+  },
+      body: receiveForm
+    });
+    if (!receiveResponse.ok) throw new Error('Failed to send job to backend: ' + receiveResponse.statusText);
+
+    const receiveData = await receiveResponse.json();
+    if (!receiveData || !receiveData.job_id) throw new Error('Invalid backend response.');
+
+    const jobId = receiveData.job_id;
+    const pollUrl = `${API_BASE}/job/status/${jobId}`;
+    let attempts = 0;
+    const maxAttempts = 30;
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    setLoadingText('AI is forging your coin...');
+    let statusData = null;
+    while (true) {
+      await delay(3000);
+      attempts += 1;
+      if (attempts === 2) setLoadingText('Adding Narachi gold finish...');
+      if (attempts === 4) setLoadingText('Finalising your Khandaan Coin...');
+
+      const statusResponse = await fetch(pollUrl,{
+        headers: {
+        "ngrok-skip-browser-warning": "true"
+      }
+      });
+      if (!statusResponse.ok) throw new Error('Status check failed: ' + statusResponse.statusText);
+      statusData = await statusResponse.json();
+      if (!statusData || !statusData.status) throw new Error('Invalid status response.');
+
+      if (statusData.status === 'finished') break;
+      if (statusData.status === 'failed') throw new Error('Coin generation failed.');
+      if (attempts >= maxAttempts) throw new Error('Coin generation timed out. Please try again.');
+    }
+
+    if (!Array.isArray(statusData.result_urls) || !statusData.result_urls[0]) {
+      throw new Error('Backend finished job but did not return a result URL.');
+    }
+    //const coinURL = statusData.result_urls[0];
+    //currentCoinDataURL = coinURL;
+    //document.getElementById('generated-coin-img').src = coinURL;
+
+    const coinURL = statusData.result_urls[0];
+
+    // Fetch image with ngrok bypass header
+    const imageResponse = await fetch(coinURL, {
+      headers: {
+        "ngrok-skip-browser-warning": "true"
+      }
+    });
+
+    if (!imageResponse.ok) {
+      throw new Error('Failed to fetch generated coin image.');
+    }
+
+    // Convert image to blob
+    const imageBlob = await imageResponse.blob();
+
+    // Create local blob URL
+    const localBlobURL = URL.createObjectURL(imageBlob);
+
+    // Use local blob URL for preview + download
+    currentCoinDataURL = localBlobURL;
+
+    document.getElementById('generated-coin-img').src =
+      localBlobURL;
+
+
+
+
+    document.getElementById('coin-loading').style.display = 'none';
+    document.getElementById('coin-result').style.display = 'block';
+
+  } catch (err) {
+    console.error(err);
+    const fallback = getCoinImg();
+    if (fallback) {
+      currentCoinDataURL = fallback;
+      document.getElementById('generated-coin-img').src = fallback;
+      document.getElementById('coin-loading').style.display = 'none';
+      document.getElementById('coin-result').style.display = 'block';
+    } else {
+      document.getElementById('coin-loading').style.display = 'none';
+      document.getElementById('coin-error').style.display = 'block';
+      document.getElementById('error-msg').textContent = 'Could not reach the coin forge. Please try again in a moment.';
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalBtnText || '⚡ Generate My Khandaan Coin';
+  }
+}
+
+// ── Download coin ──
+function downloadCoin() {
+  if (!currentCoinDataURL) return;
+  const name = document.getElementById('result-name').textContent || 'fan';
+  const a = document.createElement('a');
+  a.href = currentCoinDataURL;
+  a.download = 'Khandaan-coin-' + name.replace(/\s+/g,'-').toLowerCase() + '.png';
+  a.click();
+}
+
+// ── Copy UPI ──
+function copyUPI() {
+  navigator.clipboard.writeText('golden-mountain-studio@ybl').then(() => showToast('UPI ID copied!')).catch(() => {
+    prompt('Copy this UPI ID:', 'golden-mountain-studio@ybl');
+  });
+}
+
+// ── Admin auth ──
+function adminLogin() {
+  const pass = document.getElementById('admin-pass').value;
+  const err = document.getElementById('admin-auth-error');
+  if (pass === ADMIN_PASSWORD) {
+    err.style.display = 'none';
+    document.getElementById('admin-pass').value = '';
+    showPage('admin-page');
+    loadAdminData();
+  } else {
+    err.style.display = 'block';
+    err.textContent = 'Incorrect password.';
+  }
+}
+
+// ── Admin tabs ──
+function switchAdminTab(tab, e) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('admin-' + tab).classList.add('active');
+  e.target.classList.add('active');
+  if (tab === 'coin') loadCoinSection();
+}
+
+// ── Admin data ──
+function loadAdminData() {
+  const all = getSubs();
+  const today = new Date().toDateString();
+  document.getElementById('stat-total').textContent = all.length;
+  document.getElementById('stat-coins').textContent = all.length;
+  document.getElementById('stat-today').textContent = all.filter(s => new Date(s.date).toDateString() === today).length;
+  const recentEl = document.getElementById('recent-list');
+  recentEl.innerHTML = '';
+  const recent = all.slice(0, 5);
+  if (!recent.length) { recentEl.innerHTML = '<p style="color:var(--smoke);font-style:italic;font-size:0.88rem;">No submissions yet.</p>'; return; }
+  recent.forEach(s => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid rgba(201,147,58,0.07);';
+    const av = s.photo ? `<img src="${s.photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid rgba(201,147,58,0.3);cursor:pointer;" onclick="dlPhoto('${s.photo}','${s.name}')">`
+      : `<div style="width:30px;height:30px;border-radius:50%;background:var(--dark3);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--gold);">${s.name[0]}</div>`;
+    row.innerHTML = av + `<div style="flex:1;"><div style="font-size:0.88rem;color:var(--ash);">${esc(s.name)}</div><div style="font-size:0.72rem;color:var(--smoke);">${s.email||'—'}</div></div>`;
+    recentEl.appendChild(row);
+  });
+  renderTable();
+}
+
+function renderTable() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const all = getSubs().filter(s => s.name.toLowerCase().includes(q));
+  const tbody = document.getElementById('table-body');
+  document.getElementById('empty-state').style.display = all.length ? 'none' : 'block';
+  tbody.innerHTML = '';
+  all.forEach(s => {
+    const tr = document.createElement('tr');
+    const date = new Date(s.date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const av = s.photo ? `<img src="${s.photo}" class="sub-avatar" onclick="dlPhoto('${s.photo}','${s.name}')" title="Download photo">`
+      : `<div style="width:32px;height:32px;border-radius:50%;background:var(--dark3);display:flex;align-items:center;justify-content:center;color:var(--gold);">${s.name[0]}</div>`;
+    tr.innerHTML = `<td>${av}</td><td style="font-weight:500;">${esc(s.name)}</td><td style="color:var(--smoke);font-size:0.85rem;">${esc(s.email||'—')}</td><td style="color:var(--smoke);font-size:0.85rem;">${date}</td><td><button class="dl-btn" onclick="dlPhoto('${s.photo}','${s.name}')">⬇ Photo</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function dlPhoto(src, name) {
+  if (!src) return;
+  const a = document.createElement('a');
+  a.href = src; a.download = 'fan-' + (name||'photo').replace(/\s+/g,'-').toLowerCase() + '.png'; a.click();
+}
+
+function exportCSV() {
+  const all = getSubs();
+  if (!all.length) { showToast('No submissions yet.'); return; }
+  const csv = 'Name,Email,Date\n' + all.map(s => `"${s.name}","${s.email||''}","${new Date(s.date).toLocaleString('en-IN')}"`).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'Khandaan-submissions.csv'; a.click();
+}
+
+// ── Coin image admin ──
+function handleCoinUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    saveCoinImg(e.target.result);
+    document.getElementById('coin-preview-img').src = e.target.result;
+    document.getElementById('coin-preview-img').style.display = 'block';
+    document.getElementById('coin-upload-inner').style.display = 'none';
+    document.getElementById('coin-status').textContent = '✓ Fallback coin image saved!';
+    loadCoinSection();
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadCoinSection() {
+  const img = getCoinImg();
+  const wrap = document.getElementById('current-coin-wrap');
+  if (img) { document.getElementById('current-coin-img').src = img; wrap.style.display = 'block'; }
+  else { wrap.style.display = 'none'; }
+}
+
+// ── Storage ──
+function getSubs() { try { return JSON.parse(localStorage.getItem('gms_submissions') || '[]'); } catch { return []; } }
+function saveSubs(a) { localStorage.setItem('gms_submissions', JSON.stringify(a)); }
+function getCoinImg() { return localStorage.getItem('gms_coin_img') || null; }
+function saveCoinImg(d) { localStorage.setItem('gms_coin_img', d); }
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
