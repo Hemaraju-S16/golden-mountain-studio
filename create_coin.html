@@ -153,6 +153,9 @@
   @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--dark2);border:1px solid var(--gold);color:var(--gold-light);font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.15em;padding:0.7rem 1.5rem;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none}
   .toast.show{opacity:1}
+  .status-banner{width:100%;background:linear-gradient(90deg,rgba(201,147,58,0.12),rgba(201,147,58,0.04));border:1px solid rgba(201,147,58,0.12);padding:0.9rem 1rem;text-align:center;color:var(--gold);font-family:'Cinzel',serif;letter-spacing:0.12em}
+  .status-banner small{display:block;color:var(--smoke);font-family:'Crimson Pro',serif;font-size:0.9rem;margin-top:0.25rem}
+  .notify-btn{background:transparent;border:1px solid rgba(201,147,58,0.25);color:var(--gold);padding:0.35rem 0.7rem;font-family:'Cinzel',serif;cursor:pointer;margin-left:0.6rem}
   @media(max-width:600px){.admin-sidebar{display:none}.admin-main{padding:1rem}.form-card{padding:1.2rem}.header-user .user-email{display:none}}
 </style>
 </head>
@@ -215,6 +218,13 @@
     <button class="nav-tab" onclick="switchMainTab('about',this)">About</button>
   </div>
 
+  <!-- Status banner: shown when generation is paused or limited -->
+  <div id="generation-status-banner" style="display:none;" class="status-banner">
+    <strong id="generation-status-title">Coin generation is temporarily paused</strong>
+    <small id="generation-status-note">Batch 2 coin creation stopped. Batch 3 will start soon — we will resume coin generation shortly.</small>
+    <button class="notify-btn" id="notify-me-btn">Notify me when resumed</button>
+  </div>
+
   <!-- ── CLAIM COIN TAB ── -->
   <div id="tab-home" style="width:100%;display:flex;flex-direction:column;align-items:center;">
     <section class="hero">
@@ -242,7 +252,7 @@
           </div>
         </div>
       </div>
-      <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">⚡ Generate My Khandaan Coin</button>
+          <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">⚡ Generate My Khandaan Coin</button>
       <p style="text-align:center;font-size:0.76rem;color:var(--smoke);opacity:0.6;margin-top:0.8rem;font-style:italic;">Powered by AI · Typically takes 2-3 minutes (may take longer). After submitting, you can safely close or refresh the page — sign back in later and refresh to retrieve your coin.</p>
     </div>
     <!-- Inline Support Card (exact copy requested by user) -->
@@ -362,9 +372,9 @@
     <!-- Loading state -->
       <div id="coin-loading" class="coin-loading">
       <div class="coin-loading-ring"></div>
-      <div style="font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:0.5rem;">FORGING YOUR COIN</div>
-      <div style="color:var(--smoke);font-size:0.9rem;" id="loading-status">Sending your photo to the forge...</div>
-      <div id="loading-note" style="font-size:0.78rem;color:var(--smoke);margin-top:0.6rem;">Coin generation may take several minutes. You can safely close this tab — sign back in and refresh later to retrieve your coin. Results are kept for 24 hours.</div>
+        <div style="font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:0.5rem;">FORGING YOUR COIN</div>
+        <div style="color:var(--smoke);font-size:0.9rem;" id="loading-status">AI is forging your coin...</div>
+        <div id="loading-note" style="font-size:0.78rem;color:var(--smoke);margin-top:0.6rem;">Coin generation may take several minutes. You can safely close this tab — sign back in and refresh later to retrieve your coin. Results are kept for 24 hours.</div>
     </div>
 
     <!-- Result state -->
@@ -689,6 +699,47 @@ let photoFile = null;
 let currentUserPhoto = null;
 let currentCoinDataURL = null;
 
+// Product flag: toggle coin generation availability here (or wire to backend status)
+// Set to true when you want to pause new coin creations (e.g., batch changeover)
+const COIN_GENERATION_PAUSED = true;
+const COIN_PAUSE_TITLE = 'Coin generation is temporarily paused';
+const COIN_PAUSE_NOTE = 'Batch 2 coin creation stopped. Batch 3 will start soon — we will resume coin generation shortly.';
+
+function renderGenerationStatus() {
+  const banner = document.getElementById('generation-status-banner');
+  const title = document.getElementById('generation-status-title');
+  const note = document.getElementById('generation-status-note');
+  const btn = document.getElementById('submit-btn');
+  const notifyBtn = document.getElementById('notify-me-btn');
+  if (!banner || !btn) return;
+  if (COIN_GENERATION_PAUSED) {
+    banner.style.display = 'block';
+    title.textContent = COIN_PAUSE_TITLE;
+    note.textContent = COIN_PAUSE_NOTE;
+    btn.disabled = true;
+    btn.title = 'Coin generation is temporarily paused';
+    if (notifyBtn) {
+      notifyBtn.onclick = async () => {
+        let email = localStorage.getItem('gms_notify_email') || '';
+        try {
+          const promptVal = prompt('Enter your email to be notified when coin generation resumes:', email || '');
+          if (!promptVal) return;
+          localStorage.setItem('gms_notify_email', promptVal);
+          showToast('Thanks — we will notify you when generation resumes.');
+          // Optionally send it to backend via fetch for server-side notifications
+        } catch (e) { console.warn(e); }
+      };
+    }
+  } else {
+    banner.style.display = 'none';
+    btn.disabled = false;
+    btn.title = '';
+  }
+}
+
+// Ensure the status UI is rendered on load
+setTimeout(renderGenerationStatus, 120);
+
 // Restore a user's coin/job state from backend persistence
 window.restoreUserCoin = async function restoreUserCoin() {
   try {
@@ -713,17 +764,16 @@ window.restoreUserCoin = async function restoreUserCoin() {
       return;
     }
 
-    // Show loading UI
-    const loadingEl = document.getElementById('loading-status');
-    document.getElementById('coin-loading').style.display = 'block';
-    document.getElementById('coin-result').style.display = 'none';
-    document.getElementById('coin-error').style.display = 'none';
-    if (loadingEl) loadingEl.textContent = 'AI is forging your coin...';
-    showPage('result-page');
-
     // If job is queued/started — poll until finished
     if (data.status === 'queued' || data.status === 'started' || data.status === 'processing') {
       const jobId = data.job_id;
+      // Show loading UI only for queued/processing jobs
+      const loadingEl = document.getElementById('loading-status');
+      document.getElementById('coin-loading').style.display = 'block';
+      document.getElementById('coin-result').style.display = 'none';
+      document.getElementById('coin-error').style.display = 'none';
+      if (loadingEl) loadingEl.textContent = 'AI is forging your coin...';
+      showPage('result-page');
       if (!jobId) return;
       const pollUrl = `${API_BASE}/job/status/${jobId}`;
       const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -767,15 +817,30 @@ window.restoreUserCoin = async function restoreUserCoin() {
       // If finished, adopt statusData for image fetch
       if (statusData && statusData.status === 'finished' && Array.isArray(statusData.result_urls) && statusData.result_urls[0]) {
         const coinURL = statusData.result_urls[0];
-        const imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" } });
-        if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
-        const imageBlob = await imageResponse.blob();
-        const localBlobURL = URL.createObjectURL(imageBlob);
-        currentCoinDataURL = localBlobURL;
-        const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+        let imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" } });
+        // Handle cached 304 responses by using the direct URL (browser will serve cached image)
+        if (!imageResponse.ok) {
+          if (imageResponse.status === 304) {
+            currentCoinDataURL = coinURL;
+            const img = document.getElementById('generated-coin-img'); if (img) img.src = coinURL;
+          } else {
+            // try a fresh fetch bypassing cache once
+            imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" }, cache: 'no-store' });
+            if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
+            const imageBlob = await imageResponse.blob();
+            const localBlobURL = URL.createObjectURL(imageBlob);
+            currentCoinDataURL = localBlobURL;
+            const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+          }
+        } else {
+          const imageBlob = await imageResponse.blob();
+          const localBlobURL = URL.createObjectURL(imageBlob);
+          currentCoinDataURL = localBlobURL;
+          const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+        }
         document.getElementById('coin-loading').style.display = 'none';
         document.getElementById('coin-result').style.display = 'block';
-
+        showPage('result-page');
         return;
       }
      
@@ -785,14 +850,28 @@ window.restoreUserCoin = async function restoreUserCoin() {
     if (data.status === 'finished') {
       if (!Array.isArray(data.result_urls) || !data.result_urls[0]) return;
       const coinURL = data.result_urls[0];
-      const imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" } });
-      if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
-      const imageBlob = await imageResponse.blob();
-      const localBlobURL = URL.createObjectURL(imageBlob);
-      currentCoinDataURL = localBlobURL;
-      const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+      let imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" } });
+      if (!imageResponse.ok) {
+        if (imageResponse.status === 304) {
+          currentCoinDataURL = coinURL;
+          const img = document.getElementById('generated-coin-img'); if (img) img.src = coinURL;
+        } else {
+          imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" }, cache: 'no-store' });
+          if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
+          const imageBlob = await imageResponse.blob();
+          const localBlobURL = URL.createObjectURL(imageBlob);
+          currentCoinDataURL = localBlobURL;
+          const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+        }
+      } else {
+        const imageBlob = await imageResponse.blob();
+        const localBlobURL = URL.createObjectURL(imageBlob);
+        currentCoinDataURL = localBlobURL;
+        const img = document.getElementById('generated-coin-img'); if (img) img.src = localBlobURL;
+      }
       document.getElementById('coin-loading').style.display = 'none';
       document.getElementById('coin-result').style.display = 'block';
+      showPage('result-page');
       return;
     }
 
@@ -858,6 +937,7 @@ dropEl.addEventListener('drop', e => {
 
 // ── Generate Coin via FastAPI ──
 async function handleSubmit() {
+  if (COIN_GENERATION_PAUSED) { showToast('Coin generation is temporarily paused. Please come back later.'); return; }
   const name = document.getElementById('fan-name').value.trim();
   if (!name) { showToast('Please enter your name.'); return; }
   if (!photoFile) { showToast('Please upload a photo.'); return; }
@@ -959,27 +1039,33 @@ async function handleSubmit() {
     const coinURL = statusData.result_urls[0];
 
     // Fetch image with ngrok bypass header
-    const imageResponse = await fetch(coinURL, {
+    let imageResponse = await fetch(coinURL, {
       headers: {
         "ngrok-skip-browser-warning": "true"
       }
     });
 
     if (!imageResponse.ok) {
-      throw new Error('Failed to fetch generated coin image.');
+      if (imageResponse.status === 304) {
+        // Resource not modified — browser cache can serve it when assigned to img.src
+        currentCoinDataURL = coinURL;
+        document.getElementById('generated-coin-img').src = coinURL;
+      } else {
+        // Try one fresh fetch bypassing caches
+        imageResponse = await fetch(coinURL, { headers: { "ngrok-skip-browser-warning": "true" }, cache: 'no-store' });
+        if (!imageResponse.ok) throw new Error('Failed to fetch generated coin image.');
+        const imageBlob = await imageResponse.blob();
+        const localBlobURL = URL.createObjectURL(imageBlob);
+        currentCoinDataURL = localBlobURL;
+        document.getElementById('generated-coin-img').src = localBlobURL;
+      }
+    } else {
+      // Got fresh 200 response
+      const imageBlob = await imageResponse.blob();
+      const localBlobURL = URL.createObjectURL(imageBlob);
+      currentCoinDataURL = localBlobURL;
+      document.getElementById('generated-coin-img').src = localBlobURL;
     }
-
-    // Convert image to blob
-    const imageBlob = await imageResponse.blob();
-
-    // Create local blob URL
-    const localBlobURL = URL.createObjectURL(imageBlob);
-
-    // Use local blob URL for preview + download
-    currentCoinDataURL = localBlobURL;
-
-    document.getElementById('generated-coin-img').src =
-      localBlobURL;
 
 
 
